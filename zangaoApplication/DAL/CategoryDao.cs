@@ -23,7 +23,7 @@ namespace zangaoApplication.DAL
                 columns.Append("category_name,");
                 values.Append("'").Append(category.Name).Append("'").Append(",");
             }
-            if(category.Pid>0)
+            if(category.Pid>=0)
             {
                 columns.Append("category_pid,");
                 values.Append(category.Pid.ToString()).Append(",");
@@ -40,14 +40,50 @@ namespace zangaoApplication.DAL
             }
             if (category.Status >= 0)
             {
+                switch (category.Status)
+                {
+                    case State.Delete:
+                        values.Append("0").Append(",");
+                        break;
+                    case State.Normal:
+                        values.Append("1").Append(",");
+                        break;
+                    case State.Expiration:
+                        values.Append("4").Append(",");
+                        break;
+                    case State.Forbidden:
+                        values.Append("3").Append(",");
+                        break;
+                    case State.Verify:
+                        values.Append("2").Append(",");
+                        break;
+                    case State.Unknow:
+                        values.Append("5").Append(",");
+                        break;
+                    default:
+                        values.Append("5").Append(",");
+                        break;
+                }
                 columns.Append("category_status,");
                 values.Append(Convert.ToInt32(category.Status).ToString()).Append(",");
             }
-            if (category.AddUser > 0)
+            if (category.AddUser >= 0)
             {
                 columns.Append("add_user");
                 values.Append(category.AddUser.ToString()).Append(",");
             }
+            columns.Append("category_weight").Append(",");
+            values.Append(category.Weight.ToString()).Append(",");
+            columns.Append("category_page").Append(",");
+            if (category.IsFirstPage)
+            {
+                values.Append("1").Append(",");
+            }
+            else
+            {
+                values.Append("0").Append(",");
+            }
+
             columns.Append("add_date").Append(")");
             values.Append("GETDATE()").Append(")") ;
             insertQuery = insertQuery + columns + " values" + values;
@@ -91,13 +127,14 @@ namespace zangaoApplication.DAL
             }      
         }
 
+
+
         public List<Category> findCategorys(String query,List<SqlParameter> parameters)
         {
             List<Category> categorys = new List<Category>();
             SqlConnection conn = new SqlConnection(WebApplicationUtil.getConnectionString());
             try
             {
-
                 conn.Open();
                 SqlCommand command = new SqlCommand(query, conn);
                 if (parameters != null)
@@ -111,8 +148,50 @@ namespace zangaoApplication.DAL
                 while (reader.Read())
                 {
                     Category category = new Category();
-
-                      
+                    category.Id = reader.GetInt32(reader.GetOrdinal("category_id"));
+                    category.Name = reader.GetString(reader.GetOrdinal("category_name"));
+                    category.Pid = reader.GetInt32(reader.GetOrdinal("category_pid"));
+                    category.Sort = reader.GetInt32(reader.GetOrdinal("category_sort"));
+                    category.Weight = reader.GetInt32(reader.GetOrdinal("category_weight"));
+                    category.AddUser = reader.GetInt32(reader.GetOrdinal("add_user"));
+                    category.AddTime = reader.GetDateTime(reader.GetOrdinal("add_date"));
+                    object desc = reader.GetValue(reader.GetOrdinal("category_desc"));
+                    if (desc != null)
+                    {
+                        category.Description = (String)desc;
+                    }
+                    int stats = reader.GetInt32(reader.GetOrdinal("category_status"));
+                    switch (stats)
+                    {
+                        case 0:
+                            category.Status = State.Delete;
+                            break;
+                        case 1:
+                            category.Status = State.Normal;
+                            break;
+                        case 2:
+                            category.Status = State.Verify;
+                            break;
+                        case 3:
+                            category.Status = State.Forbidden;
+                            break;
+                        case 4:
+                            category.Status = State.Expiration;
+                            break;
+                        default:
+                            category.Status = State.Unknow;
+                            break;
+                    }
+                    int isFirstPage =(int)reader.GetValue(reader.GetOrdinal("category_page"));
+                    if (isFirstPage == 1)
+                    {
+                        category.IsFirstPage = true;
+                    }
+                    else
+                    {
+                        category.IsFirstPage = false;
+                    }
+                    categorys.Add(category);
                 }
                 conn.Close();
             }
@@ -125,5 +204,13 @@ namespace zangaoApplication.DAL
             }
             return categorys;
         }
+
+        public List<Category> getAllCategory()
+        {
+            return findCategorys("select * from category", null);
+        }
+
+        
+
     }
 }

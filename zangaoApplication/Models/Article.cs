@@ -5,7 +5,7 @@ using System.Web;
 
 namespace zangaoApplication.Models
 {
-    public class Article
+    public class Article:IModel
     {
         private String tableMap;
         public String Table

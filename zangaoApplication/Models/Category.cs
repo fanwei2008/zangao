@@ -24,11 +24,24 @@ namespace zangaoApplication.Models
         public Category()
         {
             this.tableMap = DataTableMapUtil.getTableMap("category");
+            this.Name = "";
+            this.Sort = 0;
+            this.Pid = 0;
+            this.AddUser = 0;
+            this.Weight = 0;
+            this.Status = State.Normal;
+            this.IsFirstPage = false;
             AdminUtil admin = new AdminUtil();
             this.AddUser=admin.getAdministrator();
         }
 
         public int AddUser
+        {
+            get;
+            set;
+        }
+
+        public int Weight
         {
             get;
             set;
@@ -83,6 +96,12 @@ namespace zangaoApplication.Models
         }
 
         public DateTime AddTime
+        {
+            get;
+            set;
+        }
+
+        public Administrator administrator
         {
             get;
             set;
