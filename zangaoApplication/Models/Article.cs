@@ -19,6 +19,7 @@ namespace zangaoApplication.Models
                 this.tableMap = value;
             }
         }
+        //这是我写的类？？？？？？？
 
 
     }
